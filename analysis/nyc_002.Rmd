@@ -1,0 +1,156 @@
+---
+title: "Experiment2: NYC airline data"
+date:  "2023-09-10"
+output: html_notebook
+---
+
+This experiment continues are class work on the NYCflights data, with a bit more looking at delays.
+
+We will continue to refer to (https://r4ds.hadley.nz/data-transform).
+
+
+# Packages
+
+Data is from `nycflights13`.  The other packages will support our analysis.  I am including `here` so that we have an easy way to reference file locations.
+
+```{r}
+library(nycflights13)
+library(tidyverse)
+library(janitor)
+library(here)
+#> ── Attaching core tidyverse packages ───────────────────── tidyverse 2.0.0 ──
+#> ✔ dplyr     1.1.2     ✔ readr     2.1.4
+#> ✔ forcats   1.0.0     ✔ stringr   1.5.0
+#> ✔ ggplot2   3.4.3     ✔ tibble    3.2.1
+#> ✔ lubridate 1.9.2     ✔ tidyr     1.3.0
+#> ✔ purrr     1.0.2     
+#> ── Conflicts ─────────────────────────────────────── tidyverse_conflicts() ──
+#> ✖ dplyr::filter() masks stats::filter()
+#> ✖ dplyr::lag()    masks stats::lag()
+#> ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+```
+
+# Loading the dataset
+
+Following from the book, we load the data, but I will save it as variable `df1`.
+
+```{r}
+df1=flights
+```
+
+
+
+
+# Day two: after class tasks
+
+
+```{r}
+df6=df1 %>% filter(flight==83,dest=="MIA")
+```
+
+146 flights match this condition.
+
+## A first of delays for flight 83
+
+Create a visualization (using ggplot) to show the DELAYS associated with this flight number.
+
+
+```{r}
+df6 |> 
+  ggplot(aes(x=dep_delay,y=arr_delay)) +geom_point()
+```
+
+> Questions: 
+> * Is flight time affected by delayed departure.  (Do the airlines try to "catch up"?)
+> * Does the departure delay change across time of day (later in the day has more delays.)
+> * Is flight time pattern affected by time of year
+> * Is departure delay affected by time of year.
+
+
+* Note to self
+
+*Note to self*
+
+**Note to self**
+
+***Note to self***
+
+
+
+## A second visualization:
+
+```{r}
+df1 |> 
+  filter(dest=="MIA") |>
+  count(origin)
+```
+
+### Is flight time affected by delayed departure.
+
+I want to examine whether the flight time is impacted by delayed departure.
+
+```{r}
+df7=df1 |>
+  filter(dest=="MIA",origin=="LGA") |>
+  mutate(flt_delta=arr_delay-dep_delay)
+```
+
+```{r}
+df7 |> 
+  ggplot(aes(x=dep_delay,y=flt_delta)) +geom_point(alpha=.1)
+```
+
+```{r}
+df7 |> 
+  ggplot(aes(x=dep_delay,y=flt_delta)) +geom_point(alpha=.1)+
+  geom_hline(aes(yintercept=mean(flt_delta,na.rm=TRUE)))
+```
+
+### Is departure delay affected by time of year
+
+```{r}
+df7 |>
+  ggplot(aes(x=time_hour,y=dep_delay)) +geom_point(alpha=.1)
+  
+```
+
+```{r}
+df7 |>
+  ggplot(aes(x=time_hour,y=dep_delay)) +
+  geom_point(alpha=.1)+
+  stat_smooth()+
+  ylim(-25,120)
+  
+```
+
+### Does the departure delay change across time of day?
+
+```{r}
+df7 |>
+  ggplot(aes(x=hour+minute/60,y=dep_delay)) +
+  geom_point(alpha=.1)+
+  stat_smooth()+
+  ylim(-25,120)
+  
+```
+
+```{r}
+df7 |> 
+  mutate(day_of_week=weekdays(time_hour)) |>
+  ggplot(aes(x=hour+minute/60,y=dep_delay,color=day_of_week)) +
+  geom_point(alpha=.1)+
+  stat_smooth()+
+  ylim(-25,120)
+  
+```
+
+```{r}
+df7 |> 
+  mutate(day_of_week=weekdays(time_hour)) |>
+  ggplot(aes(x=hour+minute/60,y=dep_delay,color=day_of_week)) +
+  geom_point(alpha=.1)+
+  stat_smooth()+
+  ylim(-20,40)+
+  facet_wrap(~day_of_week)
+  
+```
