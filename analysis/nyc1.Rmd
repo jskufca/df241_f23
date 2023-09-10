@@ -1,0 +1,155 @@
+---
+title: "Experiment1: NYC airline data"
+date:  "2023-09-06"
+output: html_notebook
+---
+
+This notebook is our first experiment in class.  We will be (loosely) following the analysis from R4DS chapter 4 (https://r4ds.hadley.nz/data-transform).
+
+
+# Packages
+
+Data is from `nycflights13`.  The other packages will support our analysis.  I am including `here` so that we have an easy way to reference file locations.
+
+```{r}
+library(nycflights13)
+library(tidyverse)
+library(janitor)
+library(here)
+#> ── Attaching core tidyverse packages ───────────────────── tidyverse 2.0.0 ──
+#> ✔ dplyr     1.1.2     ✔ readr     2.1.4
+#> ✔ forcats   1.0.0     ✔ stringr   1.5.0
+#> ✔ ggplot2   3.4.3     ✔ tibble    3.2.1
+#> ✔ lubridate 1.9.2     ✔ tidyr     1.3.0
+#> ✔ purrr     1.0.2     
+#> ── Conflicts ─────────────────────────────────────── tidyverse_conflicts() ──
+#> ✖ dplyr::filter() masks stats::filter()
+#> ✖ dplyr::lag()    masks stats::lag()
+#> ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+```
+
+# Loading the dataset
+
+Following from the book, we load the data, but I will save it as variable `df1`.
+
+```{r}
+df1=flights
+```
+
+And we briefly examine:
+
+```{r}
+glimpse(df1)
+```
+```{r}
+head(df1)
+```
+
+# Other datasets to create
+
+Our first tasking was to create datasets as follows:
+* Task 1:    df2 =   flights from miami  in september
+* Task2:  df3 = flights in September going to Miami
+* Task3:   df4=flights in January going to Miami
+* Task4:  df5=flights in summer going to Chicago
+
+## Task 1
+
+df2 =   flights from miami  in september
+
+```{r}
+df2=df1 |> filter(origin=="MIA",month==9)
+```
+
+It looks like this dataset only includes flights originating in New York area.
+
+
+## Task 2
+
+df3 = flights in September going to Miami
+
+```{r}
+df3=df1 |> filter(dest=="MIA",month==9)
+```
+
+We find 912 flights.
+
+## Task 3
+
+Task3:   df4=flights in January going to Miami
+
+```{r}
+df4=df1 |> filter(dest=="MIA",month==1)
+```
+
+There are 981 January flights to Miami.
+
+##  Task4:  
+
+df5=flights in summer going to Chicago
+
+
+I had to look up on line to find airports in the Chicago area.
+
+On website https://theskydeck.com/chicago-airports/ I found:
+
+* Chicago Midway Airport Code: MDW
+* Chicago O’Hare Airport Code: ORD
+
+For summer, I will use months June, July, and August.
+
+```{r}
+df5=df1 |> 
+  filter(dest %in%  c("MDW","ORD"),month %in% c(6,7,8))
+```
+
+Perhaps a better solution to the "in summer question" is to use the date information.
+
+```{r}
+df5a=df1 |> 
+  filter(dest %in%  c("MDW","ORD")) |>
+  filter(time_hour>="2013-06-21", time_hour<="2013-09-21")
+           
+```
+
+# Day two: class tasks
+
+* Sometimes flight numbers are repeated.  For flights to MIAMI in September, find the unique flight numbers.
+* Create a dataframe df6 composed of flights to Miami with a flight number matching the smallest flight number from the set above.
+* Create a visualization (using ggplot) to show the DELAYS associated with this flight number.
+
+## Finding unique flight numbers
+
+We start from `df3` for this question (Sep flights to Miami) and look for distinct flights, which we will sort:
+
+```{r}
+df_flight_num=df3 |>
+  distinct(flight) |>
+  arrange(flight)
+```
+
+Although there were 912 flights, there were only 57 flight numbers.
+
+```{r}
+head(df_flight_num)
+```
+
+## Flight 83 to Miami  
+Create a dataframe df6 composed of flights to Miami with a flight number matching the smallest flight number from the set above.
+
+```{r}
+df6=df1 %>% filter(flight==83,dest=="MIA")
+```
+
+632 flights match this condition.
+
+## Visualization of delays for flight 83
+
+Create a visualization (using ggplot) to show the DELAYS associated with this flight number.
+
+
+```{r}
+df6 |> 
+  ggplot(aes(x=dep_delay,y=arr_delay)) +geom_point()
+```
+
