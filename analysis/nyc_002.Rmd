@@ -60,12 +60,13 @@ df6 |>
   ggplot(aes(x=dep_delay,y=arr_delay)) +geom_point()
 ```
 
+## Tasking at home: discover something more about delay
+
 > Questions: 
 > * Is flight time affected by delayed departure.  (Do the airlines try to "catch up"?)
 > * Does the departure delay change across time of day (later in the day has more delays.)
 > * Is flight time pattern affected by time of year
 > * Is departure delay affected by time of year.
-
 
 * Note to self
 
@@ -75,19 +76,24 @@ df6 |>
 
 ***Note to self***
 
-
-
 ## A second visualization:
 
 ```{r}
 df1 |> 
   filter(dest=="MIA") |>
-  count(origin)
+  count(origin,sort=TRUE)
 ```
 
 ### Is flight time affected by delayed departure.
 
 I want to examine whether the flight time is impacted by delayed departure.
+
+I want to compare flight time to *planned* flight time.   So we create a new variable
+
+flt_delta=arr_delay-dep_delay
+
+An flight that arrives 10 minute late, if it departed on time, had a "delta" of 10 minutes.
+
 
 ```{r}
 df7=df1 |>
@@ -99,7 +105,6 @@ df7=df1 |>
 df7 |> 
   ggplot(aes(x=dep_delay,y=flt_delta)) +geom_point(alpha=.1)
 ```
-
 ```{r}
 df7 |> 
   ggplot(aes(x=dep_delay,y=flt_delta)) +geom_point(alpha=.1)+
@@ -123,6 +128,8 @@ df7 |>
   
 ```
 
+***Why are delays bigger in december than in january --- probably not weather.**
+
 ### Does the departure delay change across time of day?
 
 ```{r}
@@ -133,6 +140,10 @@ df7 |>
   ylim(-25,120)
   
 ```
+
+Observation:
+* Departure delay increase across the flight day.
+
 
 ```{r}
 df7 |> 

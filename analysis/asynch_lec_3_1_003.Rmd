@@ -1,0 +1,158 @@
+---
+title: "Experiment3: More airline data"
+subtitle: "Asynchronous lecture"
+date:  "2023-09-10"
+output: html_notebook
+---
+
+This experiment (conceptually) continues our class work on flight data.
+
+We will continue to refer to (https://r4ds.hadley.nz/data-transform).
+
+**However, we will expand and update our dataset by going to a root source --- the Bureau of Transportation.
+
+
+ 
+Go to website  https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FIM&QO_fu146_anzr=Nv4%20Pn44vr45 .  This dataset allows access to information on domestic flight and domestic carriers, with monthly summary data.
+
+
+
+# Packages
+
+
+```{r}
+library(nycflights13)
+library(tidyverse)
+library(janitor)
+library(here)
+#> ── Attaching core tidyverse packages ───────────────────── tidyverse 2.0.0 ──
+#> ✔ dplyr     1.1.2     ✔ readr     2.1.4
+#> ✔ forcats   1.0.0     ✔ stringr   1.5.0
+#> ✔ ggplot2   3.4.3     ✔ tibble    3.2.1
+#> ✔ lubridate 1.9.2     ✔ tidyr     1.3.0
+#> ✔ purrr     1.0.2     
+#> ── Conflicts ─────────────────────────────────────── tidyverse_conflicts() ──
+#> ✖ dplyr::filter() masks stats::filter()
+#> ✖ dplyr::lag()    masks stats::lag()
+#> ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+```
+
+# Get data from the online source.
+
+
+Save the download to your data_raw directory. It will be a zipfile, but that will be OK.  Don't change the name of the zipfile.
+
+
+## Load the BOT data
+
+We take advantage of the `here` package to get the path to the file that we stored.  We also may note that inside the zipfile is a csv file.  We will read the csvfile.
+
+
+
+```{r}
+thisfile=here("data_raw","DL_SelectFields.zip")
+
+df2022=read_csv(thisfile) %>% clean_names()
+```
+
+## Subsetting to data of interest
+
+Let's focus on flights from La Guardia (airport "LGA") and eliminate cargo flights by requiring at leat 1 passenger.
+
+Call the resultant dataframe `df9`.
+
+```{r}
+df9=df2022 |> 
+  filter(passengers>0,origin=="LGA")
+
+```
+
+
+# Exploring the BOT 2022 data
+
+## Subsetting to data of interest
+
+Lets try to visualize a monthly count of flights using a barchart.
+
+
+First, a not quite right visualization.
+
+```{r}
+df9 |> 
+  ggplot(aes(month)) + geom_bar()
+```
+By default, `geom_bar` is counting the number of rows, where we have asked it to visualize the count by `month`.  
+
+** Take a look at the dataset and discover why counting rows is not going to give us a count of flights. **
+
+The visualization we want is:
+
+```{r}
+df9 |> ggplot(aes(month)) + geom_bar(aes(weight=departures_performed))
+```
+Make some observations about this plot.
+
+
+### A new visualization
+
+Can you make a boxplot where the bar height is based on the number of passengers riding each month.
+
+```{r}
+df9 |> ggplot(aes(month)) + geom_bar(aes(weight=passengers))
+```
+
+Observation:
+* low passenger numbers in early 2022 likely due to covid.
+
+
+### Just because you can
+
+
+Here is pretty, but not so useful plot.
+
+```{r}
+df9 |> 
+  ggplot(aes(month,fill=carrier_name)) + geom_bar(aes(weight=departures_performed))
+```
+## Arrivals and departures from LGA
+
+```{r}
+df10=df2022 |> filter(passengers>0,origin=="LGA" | dest=="LGA")
+
+df10 |> ggplot(aes(month)) + geom_bar(aes(weight=passengers))
+```
+
+```{r}
+df11=df10 |> 
+  select(month,passengers,seats, carrier_name, dest, origin)
+```
+
+```{r}
+df12=df10 |> select(1:5, month, contains("id") )
+
+```
+ 
+```{r}
+df13=df11 |> mutate(percent_loading = passengers/seats*100)
+
+df13 |> 
+  ggplot(aes(percent_loading)) +
+  geom_histogram()+facet_wrap(~carrier_name,scales="free_y")
+
+```
+
+
+### Summarize data
+
+```{r}
+df14=df2022 %>% filter(passengers>0,origin=="LGA" | dest=="LGA") %>% 
+  group_by(month,carrier_name) %>% 
+  summarise(total_pass=sum(passengers),  num_flights=sum(departures_performed)) %>%
+  mutate(average_pass_per_flight=total_pass/num_flights)
+
+
+df14 
+```
+
+
+
