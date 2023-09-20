@@ -1,0 +1,157 @@
+---
+title: "Experiment4: Multiyear analysis of BOT airline data"
+subtitle: "In class work"
+date:  "2023-09-13"
+output: html_notebook
+---
+
+
+We will continue to refer to (https://r4ds.hadley.nz/data-transform).
+
+We will use data from BOT website: 
+
+ 
+Go to website  https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FIM&QO_fu146_anzr=Nv4%20Pn44vr45 .  This dataset allows access to information on domestic flight and domestic carriers, with monthly summary data.
+
+We will analyze data from 2017-present (as of Sep 2023).
+
+
+
+# Packages
+
+
+```{r}
+library(nycflights13)
+library(tidyverse)
+library(janitor)
+library(here)
+#> ── Attaching core tidyverse packages ───────────────────── tidyverse 2.0.0 ──
+#> ✔ dplyr     1.1.2     ✔ readr     2.1.4
+#> ✔ forcats   1.0.0     ✔ stringr   1.5.0
+#> ✔ ggplot2   3.4.3     ✔ tibble    3.2.1
+#> ✔ lubridate 1.9.2     ✔ tidyr     1.3.0
+#> ✔ purrr     1.0.2     
+#> ── Conflicts ─────────────────────────────────────── tidyverse_conflicts() ──
+#> ✖ dplyr::filter() masks stats::filter()
+#> ✖ dplyr::lag()    masks stats::lag()
+#> ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+```
+
+# Get data from the online source.
+
+Completed on moodle and loaded into `data_raw` directory.
+
+
+## Load the BOT data
+
+We take advantage of the `here` package to get the path to the file that we stored.  We also may note that inside the zipfile is a csv file.  We will read the csvfile.
+
+
+
+```{r}
+thisfile=here("data_raw","DL_SelectFields_2017.zip")
+df2017=read_csv(thisfile) %>% clean_names()
+
+thisfile=here("data_raw","DL_SelectFields_2018.zip")
+df2018=read_csv(thisfile) %>% clean_names()
+
+thisfile=here("data_raw","DL_SelectFields_2019.zip")
+df2019=read_csv(thisfile) %>% clean_names()
+
+thisfile=here("data_raw","DL_SelectFields_2020.zip")
+df2020=read_csv(thisfile) %>% clean_names()
+
+thisfile=here("data_raw","DL_SelectFields_2021.zip")
+df2021=read_csv(thisfile) %>% clean_names()
+
+thisfile=here("data_raw","DL_SelectFields_2022.zip")
+df2022=read_csv(thisfile) %>% clean_names()
+
+thisfile=here("data_raw","DL_SelectFields_2023.zip")
+df2023=read_csv(thisfile) %>% clean_names()
+
+```
+
+### combine dataframes 
+
+```{r}
+dfc=df2017 |>
+  bind_rows(df2018) |>
+  bind_rows(df2019) |>
+  bind_rows(df2020) |>
+  bind_rows(df2021) |>
+  bind_rows(df2022) |>
+  bind_rows(df2023)
+
+```
+
+
+
+
+## Subsetting to data of interest
+
+
+### Arrivals and departures from LGA
+
+```{r}
+dfc1=dfc %>%
+  filter(passengers>0,origin=="LGA" | dest=="LGA") %>%
+  mutate(by_month=ym(str_c(year,"-",month))) 
+
+
+# piped
+# mtcars %>%
+#   group_by(cyl) %>% 
+#   summarise(mean_mpg = mean(mpg)) %>%
+#   Unravel::unravel()
+
+```
+
+
+
+```{r}
+
+dfc1 |> ggplot(aes(by_month)) + geom_bar(aes(weight=passengers)) +
+  ggtitle("total passengers by month over multiyear period")
+```
+
+## Year over Year?
+
+```{r}
+
+dfc1 |> ggplot(aes(year)) + geom_bar(aes(weight=passengers)) +
+  ggtitle("total passengers by year over multiyear period")
+```
+
+```{r}
+
+dfc1 |> ggplot(aes(year)) + geom_bar(aes(weight=passengers)) +
+  ggtitle("total passengers by year over multiyear period")
+```
+
+### Below here will not run
+ 
+```{r eval=FALSE, include=FALSE}
+df13=df11 |> mutate(percent_loading = passengers/seats*100)
+
+df13 |> 
+  ggplot(aes(percent_loading)) +
+  geom_histogram()+facet_wrap(~carrier_name,scales="free_y")
+
+```
+
+
+### Summarize data
+
+```{r eval=FALSE, include=FALSE}
+df14=df2022 %>% filter(passengers>0,origin=="LGA" | dest=="LGA") %>% 
+  group_by(month,carrier_name) %>% 
+  summarise(total_pass=sum(passengers),  num_flights=sum(departures_performed)) %>%
+  mutate(average_pass_per_flight=total_pass/num_flights)
+
+
+df14 
+```
+
+
+
