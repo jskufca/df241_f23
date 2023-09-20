@@ -96,7 +96,7 @@ write_csv(dfc,here("data","bot_flight_2017_2023m08.csv"))
 Test readung:
 
 ```{r}
-dfc1=read_csv(here("data","bot_flight_2017_2023m08.csv"))
+dfc=read_csv(here("data","bot_flight_2017_2023m08.csv"))
 ```
 
 
