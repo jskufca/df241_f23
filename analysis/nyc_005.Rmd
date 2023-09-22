@@ -222,6 +222,18 @@ dfc5 |>
   ggtitle("accumulated net flow to Miami") 
 ```
 
+```{r}
+df_f=dfc1 %>% 
+  filter(dest == "MIA" | origin=="MIA") %>%
+  group_by(origin,by_month) %>% 
+  summarise(passengers=sum(passengers)) %>%
+  mutate(cum_pass=cumsum(passengers)) %>% 
+  pivot_wider(names_from = origin,
+              values_from = c("passengers","cum_pass")) %>%
+  mutate(net_to_miami=passengers_LGA-passengers_MIA,
+         cum_to_miami=cum_pass_LGA-cum_pass_MIA)
+  
+```
 
 
 
