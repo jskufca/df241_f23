@@ -55,7 +55,48 @@ I will remove variables that I know are irrelevant and filter to only the rows o
 df_calc=df1 |>
   select(-acad_org,-title,-current_status,-course_id) |> 
   filter(subject=="MA",
-         catalog %in% c(120,125,131,132),
+         catalog %in% c(131,132),
          component=="LEC")
 ```
+
+# Data processing to support likely analysis questions
+
+We perform the following preprocessing steps:
+
+* get rid extra rows produced by multiple instructor listings
+* remove instructor variable (not needed), 
+* remove subject and component (same for all entries)
+* Make the catalog number into a character string
+* separate the semester column into two variables
+* determine the academic year
+* eliminate sections from MA131 spring semester
+* elimitate summer semesters
+
+```{r}
+df2=df_calc %>%
+  slice_head(n=1,by=c(term_7,catalog,section)) %>%
+  select(-subject,-component,-instructor) %>%
+  mutate(catalog=as.character(catalog)) %>%
+  separate_wider_delim(term_8,delim=" ",names=c("semester","year")) %>%
+  mutate(ay=((term_7-4000)/10) %>% round()) %>%
+  filter(!(catalog=="131" & semester=="Spring")) %>%
+  filter(semester %in% c("Fall","Spring")) %>%
+  summarise(tot_enrl=sum(tot_enrl),.by=c(catalog,semester,ay)) %>%
+  pivot_wider(values_from=tot_enrl,
+              id_cols=ay,
+              names_from = c("catalog","semester"),
+              names_prefix = "ma") %>% 
+  clean_names() 
+  
+```
+
+Visualization:
+
+```{r}
+df2 %>% 
+  ggplot(aes(ma131_fall,ma132_spring)) +
+  geom_point()+
+  theme_minimal()
+```
+
 
