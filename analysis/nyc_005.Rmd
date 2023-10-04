@@ -89,17 +89,27 @@ dfc=df2017 |>
 
 I will save this data as csv file with intent that future loading can simply read this new file.
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 write_csv(dfc,here("data","bot_flight_2017_2023m08.csv"))
 ```
 
-Test readung:
+And we will write a compressed copy using vroom:
 
-```{r}
-dfc=read_csv(here("data","bot_flight_2017_2023m08.csv"))
+```{r eval=FALSE, include=FALSE}
+vroom::vroom_write(dfc,here("data","bot_flight_2017_2023m08.csv.bz2"))
 ```
 
 
+
+Test readung:
+
+```{r eval=FALSE, include=FALSE}
+dfc=read_csv(here("data","bot_flight_2017_2023m08.csv"))
+```
+
+```{r}
+dfc=read_csv(here("data","bot_flight_2017_2023m08.csv.bz2"))
+```
 
 
 ## Subsetting to data of interest

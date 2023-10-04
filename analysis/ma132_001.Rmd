@@ -1,0 +1,61 @@
+---
+title: "Experiment001: MA132 enrollment"
+subtitle: "In class work"
+date:  "2023-10-02"
+output: html_notebook
+---
+
+
+We will continue to refer to (https://r4ds.hadley.nz/data-transform).
+
+Our dataset is peoplesoft querry which gives enrollment in all math sections over several semesters. 
+
+Our goal is to predict Spring 2024 enrollment for MA132.
+
+
+
+# Packages
+
+
+```{r}
+
+library(tidyverse)
+library(janitor)
+library(here)
+#> ── Attaching core tidyverse packages ───────────────────── tidyverse 2.0.0 ──
+#> ✔ dplyr     1.1.2     ✔ readr     2.1.4
+#> ✔ forcats   1.0.0     ✔ stringr   1.5.0
+#> ✔ ggplot2   3.4.3     ✔ tibble    3.2.1
+#> ✔ lubridate 1.9.2     ✔ tidyr     1.3.0
+#> ✔ purrr     1.0.2     
+#> ── Conflicts ─────────────────────────────────────── tidyverse_conflicts() ──
+#> ✖ dplyr::filter() masks stats::filter()
+#> ✖ dplyr::lag()    masks stats::lag()
+#> ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+```
+
+# Get data from the online source.
+
+Completed on moodle and loaded into `data_raw` directory.
+
+```{r}
+df1=read_csv(here("data_raw","CU_ACAD_DEPT_WHEN_OFF_ENRL.csv")) %>% clean_names()
+
+```
+
+```{r}
+skimr::skim(df1)
+```
+
+# Some initial subsetting of the data
+
+I will remove variables that I know are irrelevant and filter to only the rows of interest (MA131 or MA132).
+
+```{r}
+df_calc=df1 |>
+  select(-acad_org,-title,-current_status,-course_id) |> 
+  filter(subject=="MA",
+         catalog %in% c(120,125,131,132),
+         component=="LEC")
+```
+
